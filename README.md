@@ -125,7 +125,8 @@ Dashboards are served via **Metabase** connected directly to the Gold layer:
 - Full inventory status table (CRITICAL / LOW / OK)
 - Product count by inventory status
 
-![Markdown](docs/Sales_Overview.png)
+![Markdown](docs/sale_dashboard.png)
+![Markdown](docs/sale_dashboard(2).png)
 
 ---
 
