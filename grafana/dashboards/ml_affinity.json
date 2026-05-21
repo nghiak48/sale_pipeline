@@ -1,0 +1,166 @@
+{
+  "title": "Product Affinity & Recommendations",
+  "uid": "ml-affinity",
+  "tags": ["retail", "ml", "recommendations"],
+  "timezone": "browser",
+  "refresh": "5m",
+  "schemaVersion": 38,
+  "version": 1,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Top association rules (FP-Growth) — lift cao nhất",
+      "type": "table",
+      "gridPos": { "h": 10, "w": 14, "x": 0, "y": 0 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "lift" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              { "id": "unit", "value": "short" },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "yellow", "value": null },
+                    { "color": "orange", "value": 1.5 },
+                    { "color": "green",  "value": 2.0 }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "confidence" },
+            "properties": [{ "id": "unit", "value": "percentunit" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "support" },
+            "properties": [{ "id": "unit", "value": "percentunit" }]
+          }
+        ]
+      },
+      "options": {
+        "sortBy": [{ "displayName": "lift", "desc": true }]
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT antecedent AS \"Nếu mua\", consequent AS \"Thường mua thêm\", ROUND(confidence,3) AS confidence, ROUND(support,3) AS support, ROUND(lift,3) AS lift FROM gold.mart_product_affinity ORDER BY lift DESC LIMIT 20",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Lift distribution",
+      "type": "histogram",
+      "gridPos": { "h": 10, "w": 10, "x": 14, "y": 0 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "blue" }
+        }
+      },
+      "options": { "fillOpacity": 80, "bucketSize": "auto" },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT lift AS value FROM gold.mart_product_affinity",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Gợi ý sản phẩm cho customer (CF) — nhập customer_id",
+      "type": "table",
+      "gridPos": { "h": 10, "w": 14, "x": 0, "y": 10 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "score" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "blue",  "value": null },
+                    { "color": "green", "value": 300 }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT customer_id, rank AS \"#\", product_name AS \"Sản phẩm gợi ý\", ROUND(score,2) AS score FROM gold.mart_cf_recommendations WHERE customer_id = $customer_id ORDER BY rank",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "templating": {
+        "list": [
+          {
+            "name": "customer_id",
+            "type": "textbox",
+            "label": "Customer ID",
+            "current": { "value": "1" }
+          }
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "title": "Top sản phẩm được gợi ý nhiều nhất (CF)",
+      "type": "bargauge",
+      "gridPos": { "h": 10, "w": 10, "x": 14, "y": 10 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": { "calcs": ["sum"] }
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT product_name AS metric, COUNT(*) AS value FROM gold.mart_cf_recommendations WHERE rank = 1 GROUP BY product_name ORDER BY value DESC LIMIT 10",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "customer_id",
+        "type": "textbox",
+        "label": "Customer ID",
+        "hide": 0,
+        "current": { "value": "1", "text": "1" }
+      }
+    ]
+  },
+  "time": { "from": "now-7d", "to": "now" },
+  "timepicker": {}
+}

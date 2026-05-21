@@ -1,0 +1,312 @@
+{
+  "title": "Sales Operations",
+  "uid": "sales-ops",
+  "tags": ["retail", "sales", "operations"],
+  "timezone": "browser",
+  "refresh": "1m",
+  "schemaVersion": 38,
+  "version": 1,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Tổng doanh thu hôm nay",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 50000 },
+              { "color": "green", "value": 100000 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background"
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT COALESCE(SUM(total_revenue), 0) AS value FROM gold.mart_sales WHERE sale_hour >= date_trunc('day', NOW())",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Tổng đơn hàng hôm nay",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 500 },
+              { "color": "green", "value": 1000 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "colorMode": "background"
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT COALESCE(SUM(order_count), 0) AS value FROM gold.mart_sales WHERE sale_hour >= date_trunc('day', NOW())",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Giá trị đơn trung bình",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 200 },
+              { "color": "green", "value": 300 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["mean"] },
+        "colorMode": "background"
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT COALESCE(AVG(avg_order_value), 0) AS value FROM gold.mart_sales WHERE sale_hour >= date_trunc('day', NOW())",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Inventory alerts chưa xử lý",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 10 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background"
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT COUNT(*) AS value FROM inventory_alerts WHERE resolved = FALSE",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Doanh thu theo giờ (24h gần nhất)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 4 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "gradientMode": "none"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT sale_hour AS time, store_id::text AS metric, SUM(total_revenue) AS value FROM gold.mart_sales WHERE sale_hour >= NOW() - INTERVAL '24 hours' GROUP BY sale_hour, store_id ORDER BY sale_hour",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Store performance hôm nay",
+      "type": "bargauge",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 4 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "color": { "mode": "palette-classic" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          }
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": { "calcs": ["sum"] }
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT 'Store ' || store_id::text AS metric, SUM(total_revenue) AS value FROM gold.mart_sales WHERE sale_hour >= date_trunc('day', NOW()) GROUP BY store_id ORDER BY value DESC",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Doanh thu theo category hôm nay",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 12 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": { "unit": "currencyUSD" },
+        "overrides": []
+      },
+      "options": {
+        "pieType": "donut",
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": ["percent", "value"]
+        },
+        "tooltip": { "mode": "single" }
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT category, SUM(total_revenue) AS total_revenue FROM gold.mart_sales WHERE sale_hour >= date_trunc('day', NOW()) AND category IS NOT NULL GROUP BY category ORDER BY total_revenue DESC",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Inventory status",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 16, "x": 8, "y": 12 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "status" },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null }
+                  ]
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "OK":       { "color": "green",  "index": 0 } } },
+                  { "type": "value", "options": { "LOW":      { "color": "yellow", "index": 1 } } },
+                  { "type": "value", "options": { "CRITICAL": { "color": "red",    "index": 2 } } }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "sortBy": [{ "displayName": "stock_qty", "desc": false }],
+        "footer": { "show": false }
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT product_name, category, stock_qty, restock_threshold, status, alert_count FROM gold.mart_inventory ORDER BY CASE status WHEN 'CRITICAL' THEN 1 WHEN 'LOW' THEN 2 ELSE 3 END, stock_qty ASC LIMIT 20",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Doanh thu 7 ngày gần nhất",
+      "type": "timeseries",
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 20 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT date_trunc('day', sale_hour) AS time, SUM(total_revenue) AS \"Total revenue\", SUM(order_count) AS \"Orders\" FROM gold.mart_sales WHERE sale_hour >= NOW() - INTERVAL '7 days' GROUP BY 1 ORDER BY 1",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "time": { "from": "now-24h", "to": "now" },
+  "timepicker": {}
+}

@@ -1,0 +1,205 @@
+{
+  "title": "Customer Analytics",
+  "uid": "customer-analytics",
+  "tags": ["retail", "rfm", "customer"],
+  "timezone": "browser",
+  "refresh": "5m",
+  "schemaVersion": 38,
+  "version": 1,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Tổng khách hàng",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT COUNT(DISTINCT customer_id) AS value FROM gold.mart_account",
+          "format": "table", "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Champions",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "fixed", "fixedColor": "green" }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT COUNT(*) AS value FROM gold.mart_account WHERE segment = 'Champions'",
+          "format": "table", "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "At Risk",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "fixed", "fixedColor": "orange" }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT COUNT(*) AS value FROM gold.mart_account WHERE segment = 'At Risk'",
+          "format": "table", "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Lost customers",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "fixed", "fixedColor": "red" }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT COUNT(*) AS value FROM gold.mart_account WHERE segment = 'Lost'",
+          "format": "table", "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Phân bổ RFM segments",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 10, "x": 0, "y": 4 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": {
+        "pieType": "donut",
+        "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent"] }
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT segment AS metric, COUNT(*) AS value FROM gold.mart_account GROUP BY segment ORDER BY value DESC",
+          "format": "table", "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Monetary trung bình theo segment",
+      "type": "bargauge",
+      "gridPos": { "h": 8, "w": 14, "x": 10, "y": 4 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": { "calcs": ["mean"] }
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT segment AS metric, ROUND(AVG(monetary), 2) AS value FROM gold.mart_account GROUP BY segment ORDER BY value DESC",
+          "format": "table", "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Top 20 khách hàng theo doanh thu",
+      "type": "table",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 12 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "segment" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "Champions": { "color": "green",  "index": 0 } } },
+                  { "type": "value", "options": { "Loyal":      { "color": "blue",   "index": 1 } } },
+                  { "type": "value", "options": { "At Risk":    { "color": "orange", "index": 2 } } },
+                  { "type": "value", "options": { "Lost":       { "color": "red",    "index": 3 } } }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "monetary" },
+            "properties": [{ "id": "unit", "value": "currencyUSD" }]
+          }
+        ]
+      },
+      "options": {
+        "sortBy": [{ "displayName": "monetary", "desc": true }]
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT customer_id, segment, frequency, ROUND(monetary, 2) AS monetary, recency_days FROM gold.mart_account ORDER BY monetary DESC LIMIT 20",
+          "format": "table", "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Recency distribution — ngày kể từ lần mua cuối",
+      "type": "histogram",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 12 },
+      "datasource": { "uid": "retail_pg" },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "color": { "mode": "palette-classic" } }
+      },
+      "options": {
+        "bucketSize": "auto",
+        "fillOpacity": 80,
+        "legend": { "displayMode": "list" }
+      },
+      "targets": [
+        {
+          "datasource": { "uid": "retail_pg" },
+          "rawSql": "SELECT recency_days AS value FROM gold.mart_account ORDER BY recency_days",
+          "format": "table", "refId": "A"
+        }
+      ]
+    }
+  ],
+  "time": { "from": "now-7d", "to": "now" },
+  "timepicker": {}
+}
