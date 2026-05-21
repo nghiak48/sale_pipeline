@@ -45,6 +45,7 @@ Raw (Disk) → Bronze (MinIO) → Silver (PostgreSQL) → Gold (PostgreSQL)
 | `mart_sales` | `store_id`, `category`, `sale_hour`, `total_revenue`,`order_count`, `avg_order_value` | Hourly revenue aggregation per store and category; powers sales dashboards and trend analysis |
 | `mart_account` | `customer_id`, `segment`, `frequency`, `monetary`, `recency_days`, `snapshot_date` | Daily RFM snapshots with historical tracking; supports retention campaigns and customer lifecycle analysis |
 | `mart_inventory` | `product_id`, `stock_qty`, `status`, `alert_count` | Live inventory status with restock alerts; used by operations teams for procurement decisions |
+
 ![Markdown](docs/mart_account.png)
 ![Markdown](docs/mart_inventory.png)
 ![Markdown](docs/mart_sale.png)
