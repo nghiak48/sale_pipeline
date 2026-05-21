@@ -13,7 +13,10 @@ This project addresses the challenge of observing and consolidating near real-ti
 The system is designed so that raw data is always preserved on local disk (mirroring what would come from operational systems), giving engineers and analysts a reliable source to audit, replay, or debug when issues arise downstream between the original data and data in data lake. 
 
 ---
+## Architecture
+![Markdown](docs/architecture.png)
 
+---
 ## Objectives
 
 ### Medallion Architecture
